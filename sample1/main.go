@@ -1,10 +1,13 @@
 package main
 
 import (
-  "fmt"
+	"fmt"
 )
 
 func main() {
-  wgsample()
-  fmt.Println("finish")
+	fmt.Println("start")
+	fmt.Println("---------------------")
+	procon()
+	fmt.Println("---------------------")
+	fmt.Println("finish")
 }
