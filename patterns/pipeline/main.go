@@ -22,7 +22,7 @@ func add(values []int, additive int) []int {
 
 func main() {
 	ints := []int{1, 2, 3, 4}
-	for _, v := range add(multiply(ints, 2), 1) {
+	for _, v := range multiply(add(multiply(ints, 2), 1), 2) {
 		fmt.Println(v)
 	}
 }
