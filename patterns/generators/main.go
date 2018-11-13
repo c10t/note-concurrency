@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 )
 
 func repeat(done <-chan interface{}, values ...interface{}) <-chan interface{} {
@@ -16,6 +17,23 @@ func repeat(done <-chan interface{}, values ...interface{}) <-chan interface{} {
 					return
 				case valueStream <- v:
 				}
+			}
+		}
+	}()
+
+	return valueStream
+}
+
+func repeatFn(done <-chan interface{}, fn func() interface{}) <-chan interface{} {
+	valueStream := make(chan interface{})
+
+	go func() {
+		defer close(valueStream)
+		for {
+			select {
+			case <-done:
+				return
+			case valueStream <- fn():
 			}
 		}
 	}()
@@ -48,7 +66,9 @@ func main() {
 	done := make(chan interface{})
 	defer close(done)
 
-	for num := range take(done, repeat(done, 1), 10) {
-		fmt.Printf("%v ", num)
+	rand := func() interface{} { return rand.Int() }
+
+	for num := range take(done, repeatFn(done, rand), 10) {
+		fmt.Println(num)
 	}
 }
