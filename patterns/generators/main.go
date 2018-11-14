@@ -5,6 +5,26 @@ import (
 	"math/rand"
 )
 
+func toString(
+	done <-chan interface{},
+	valueStream <-chan interface{},
+) <-chan string {
+	stringStream := make(chan string)
+
+	go func() {
+		defer close(stringStream)
+		for v := range valueStream {
+			select {
+			case <-done:
+				return
+			case stringStream <- v.(string):
+			}
+		}
+	}()
+
+	return stringStream
+}
+
 func repeat(done <-chan interface{}, values ...interface{}) <-chan interface{} {
 	valueStream := make(chan interface{})
 
@@ -71,4 +91,11 @@ func main() {
 	for num := range take(done, repeatFn(done, rand), 10) {
 		fmt.Println(num)
 	}
+
+	var message string
+	for token := range toString(done, take(done, repeat(done, "I", "am. "), 5)) {
+		message += token
+	}
+
+	fmt.Printf("message: %s...\n", message)
 }
