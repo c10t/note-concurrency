@@ -6,6 +6,7 @@ import (
 
 func DoWork(
 	done <-chan interface{},
+	pulseInterval time.Duration,
 	nums ...int,
 ) (<-chan interface{}, <-chan int) {
 	heartbeat := make(chan interface{}, 1)
@@ -17,16 +18,22 @@ func DoWork(
 
 		time.Sleep(2 * time.Second)
 
-		for _, n := range nums {
-			select {
-			case heartbeat <- struct{}{}:
-			default:
-			}
+		pulse := time.Tick(pulseInterval)
 
-			select {
-			case <-done:
-				return
-			case intStream <- n:
+	numLoop:
+		for _, n := range nums {
+			for {
+				select {
+				case <-done:
+					return
+				case <-pulse:
+					select {
+					case heartbeat <- struct{}{}:
+					default:
+					}
+				case intStream <- n:
+					continue numLoop
+				}
 			}
 		}
 	}()
