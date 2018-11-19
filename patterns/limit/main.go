@@ -5,20 +5,34 @@ import (
 	"log"
 	"os"
 	"sync"
+
+	"golang.org/x/time/rate"
 )
 
 // dummy client from here---
 func Open() *APIConnection {
-	return &APIConnection{}
+	return &APIConnection{
+		rateLimiter: rate.NewLimiter(rate.Limit(1), 1),
+	}
 }
 
-type APIConnection struct{}
+type APIConnection struct {
+	rateLimiter *rate.Limiter
+}
 
 func (a *APIConnection) ReadFile(ctx context.Context) error {
+	if err := a.rateLimiter.Wait(ctx); err != nil {
+		return err
+	}
+	// pretemd we do work here
 	return nil
 }
 
 func (a *APIConnection) ResolveAddress(ctx context.Context) error {
+	if err := a.rateLimiter.Wait(ctx); err != nil {
+		return err
+	}
+	// pretemd we do work here
 	return nil
 }
 
